@@ -1,0 +1,71 @@
+{
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "一些配置",
+				"enablePullDownRefresh": true,
+				"app-plus": {
+				    "pullToRefresh": { 
+						"style": "circle",
+						"color": "#5096f5"
+				    }
+				}
+			}
+		}
+	    ,{
+            "path" : "pages/detail/detail",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "一些PPT",
+                "enablePullDownRefresh": true,
+				"app-plus": {
+				    "pullToRefresh": { 
+						"style": "circle",
+						"color": "#5096f5"
+				    }
+				}
+            }
+            
+        }
+        ,{
+            "path" : "pages/saveppt/saveppt",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "本地的PPT",
+                "enablePullDownRefresh": true,
+				"app-plus": {
+				    "pullToRefresh": { 
+						"style": "circle",
+						"color": "#5096f5"
+				    }
+				}
+            }
+            
+        }
+    ],
+	"globalStyle": {
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "雨课堂PPT获取",
+		"navigationBarBackgroundColor": "#5096f5",
+		"backgroundColor": "#DEEAF7"
+	},
+	"uniIdRouter": {},
+	"tabBar": {
+		"borderStyle": "white",
+		"list": [
+			{
+				"pagePath": "pages/index/index",
+				"text": "首页",
+				"iconPath": "static/tab/h.png",
+				"selectedIconPath": "static/tab/ha.png"
+			},
+			{
+				"pagePath": "pages/saveppt/saveppt",
+				"text": "PPT",
+				"iconPath": "static/tab/p.png",
+				"selectedIconPath": "static/tab/pa.png"
+			}
+		]
+	}
+}
