@@ -19,6 +19,7 @@
             {
                 "navigationBarTitleText": "一些PPT",
                 "enablePullDownRefresh": true,
+				"onReachBottomDistance": 200,
 				"app-plus": {
 				    "pullToRefresh": { 
 						"style": "circle",
@@ -43,6 +44,31 @@
             }
             
         }
+        ,{
+            "path" : "pages/login/login",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "登录",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+        ,{
+            "path" : "pages/about/about",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "关于我们",
+                "enablePullDownRefresh": false
+            }
+            
+        },
+        {
+        	"path" : "pages/detail/history",
+        	"style" : 
+        	{
+        		"navigationBarTitleText" : ""
+        	}
+        }
     ],
 	"globalStyle": {
 		"navigationBarTextStyle": "white",
@@ -59,6 +85,12 @@
 				"text": "首页",
 				"iconPath": "static/tab/h.png",
 				"selectedIconPath": "static/tab/ha.png"
+			},
+			{
+				"pagePath": "pages/about/about",
+				"text": "关于",
+				"iconPath": "static/tab/g.png",
+				"selectedIconPath": "static/tab/ga.png"
 			},
 			{
 				"pagePath": "pages/saveppt/saveppt",

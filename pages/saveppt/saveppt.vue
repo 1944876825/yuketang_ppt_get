@@ -10,19 +10,19 @@
 						style="padding: 15rpx 20rpx;border-radius: 20rpx;color: #fff;margin-bottom: 15rpx;"
 						v-for="ppt in pptList"
 						@tap="toPPT(ppt)">
-						<view class="flex-col justify-center items-center">
-							<view class="ctitle line_1" style="padding: 10rpx;max-width: 400rpx;">
-								<text style="font-size: 18px;font-weight: 800;">{{ppt['courseName']}}</text>
+						<view class="flex-col" style="max-width: 400rpx;">
+							<view class="ctitle" style="padding: 10rpx;">
+								<text style="font-size: 30rpx;font-weight: 800;">{{ppt['courseName']}}</text>
 							</view>
-							<view class="ctitle line_1" style="padding: 10rpx;max-width: 400rpx;">
+							<view class="ctitle" style="padding: 10rpx;">
 								<text style="font-size: 14px;font-weight: 800;">{{ppt['title']}}</text>
 							</view>
-							<view class="ctitle line_1" style="padding: 10rpx;max-width: 400rpx;">
+							<view class="ctitle" style="padding: 10rpx;">
 								<text style="font-size: 13px;font-weight: 600;">{{ppt['time']}}</text>
 							</view>
 						</view>
 						<view class="flex-col justify-center" style="padding: 20rpx;">
-							<text style="font-size: 15px;font-weight: 600;">点击查看</text>
+							<text style="font-size: 28rpx;font-weight: 600;">点击查看</text>
 						</view>
 					</view>
 				</view>
@@ -84,8 +84,20 @@
 				})
 			},
 			toPPT(ppt) {
-				uni.navigateTo({
-					url: '/pages/detail/detail?courseName='+ ppt['courseName'] +'&source='+ ppt['source'] + '&lessonId=' + ppt['lessonId'] + '&type=local' + '&title=' + ppt['title']
+				uni.setStorage({
+					key: 'current_class',
+					data: ppt,
+					success:res=>{
+						uni.navigateTo({
+							url: '/pages/detail/history'
+						})
+					},
+					fail:err=>{
+						uni.showToast({
+							icon:'none',
+							title:'缓存储存失败'
+						})
+					}
 				})
 			},
 		}

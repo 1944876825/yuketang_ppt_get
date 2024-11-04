@@ -11,7 +11,7 @@
 		},
 		onHide: function() {
 			console.log('App Hide')
-		}
+		},
 	}
 </script>
 
@@ -23,11 +23,25 @@
 		width: 100%;
 		height: 100%;
 	}
-	
 	.ykt_bgc {
 		background-color: #5096f5;
 	}
+	.ykt_color {
+		color: #5096f5;
+	}
 	
+	.hand {
+	    cursor: pointer
+	}
+	.no-select {
+	    user-select: none;
+	}
+	.copyable-text {
+	    -webkit-user-select: text; /* Safari */
+	    -moz-user-select: text; /* Firefox */
+	    -ms-user-select: text; /* IE 10+ */
+	    user-select: text;
+	}
 	.line_1 {
 		text-overflow: ellipsis;
 		overflow: hidden;

@@ -17,32 +17,35 @@
 				</view>
 				<view class="options">
 					<view class="obox" :class="dqxz == 'ALL' ? 'actobox' : ''" @tap="choptions('ALL')">
-						全部
+						ALL
 					</view>
 					<view class="obox" :class="dqxz == 'PPT' ? 'actobox' : ''" @tap="choptions('PPT')">
 						PPT
 					</view>
 					<view class="obox" :class="dqxz == 'Question' ? 'actobox' : ''" @tap="choptions('Question')">
-						题目
+						Question
 					</view>
 					<view class="obox" :class="isSave == true ? 'actobox' : ''" @tap="save()">
-						{{isSave==false?'保存':'已保存'}}
+						{{isSave==false?'SAVE':'UNSAVE'}}
+					</view>
+					<view class="obox" @tap="generatePDF()">
+						PDF
 					</view>
 				</view>
 			</view>
 		</view>
 		
-		<view class="center" style="margin-top: 8px;">
-			<scroll-view scroll-y="true" v-if="isShowPPT">
-				<view v-for="(slide, index) in slideList[slideIndex]" class="pptBox flex-col items-center" v-if="dqxz=='ALL' || (slide['problem'] && dqxz=='Question') || (!slide['problem'] && dqxz=='PPT')">
-					<image :id="'fg'+slide.id" :src="slide['cover']" mode="aspectFit" @click="imgShow(index)"></image>
+		<view class="center">
+			<block v-for="(slide, index) in slideList">
+				<view class="pptBox" v-if="dqxz=='ALL' || (slide['problem'] && dqxz=='Question') || (!slide['problem'] && dqxz=='PPT')">
+					<image :src="slide['cover']" mode="aspectFit" @click="imgShow(index)"></image>
 					<block v-if="slide['problem'] && slide['problem']['answers'] && slide['problem']['answers']['length']>0">
 						<text class="answer" style="font-size: 16px;font-weight: 800;">答案：{{slide['problem']['answers'].join(' ')}}</text>
 					</block>
 					<text style="font-size: 13px;font-weight: 600;margin-top: 10rpx;">第{{slide['index']}}张</text>
 				</view>
-			</scroll-view>
-			<view class="tips" v-else>
+			</block>
+			<view class="tips">
 				{{ jztips }}
 			</view>
 		</view>
@@ -51,13 +54,13 @@
 
 <script>
 import loginVue from '../login/login.vue';
-import {
-	jsPDF
-} from 'jspdf';
+import PDFDocument from 'pdfkit';
+import blobStream from 'blob-stream';
 
 	export default {
 		data() {
 			return {
+				type: '',
 				source: '',
 				lessonId: '',
 				presentation_id_list: [],
@@ -81,36 +84,103 @@ import {
 			};
 		},
 		onLoad(opt) {
-			uni.getStorage({
-				key: 'yktcookie',
-				success:res=>{
-					getApp().globalData.Cookie = res.data
-					this.load()
-				},
-				fail:err=>{
-					uni.navigateTo({
-						url: '/pages/login/login'
-					})
-				}
-			})
-			// this.load()
+			this.type = opt['type'];
+			this.load()
 		},
 		onPullDownRefresh() {
 			this.slideTitleList = []
 			this.slideList = []
 			// this.currentSlideList = []
 			
-			if (this.authHeader && this.wssAuth && this.userid) {
-				this.getAnswer()
-			} else {
-				this.getAuthHeader()	
+			this.getHistory()
+			
+			if (this.type != 'local') {
+				if (this.authHeader && this.wssAuth && this.userid) {
+					this.getAnswer()
+				} else {
+					this.getAuthHeader()	
+				}
 			}
 			
 			setTimeout(function() {
 				uni.stopPullDownRefresh();
 			}, 500);
 		},
+		// onReachBottom() {
+		// 	const slen = this.slideList[this.slideIndex].length;
+		// 	if (slen == 0) {
+		// 		this.jztips = '暂时没有PPT ~'
+		// 		return
+		// 	}
+		// 	if (this.currentSlideList.length >= slen) {
+		// 		this.jztips = '没有啦 ~'
+		// 		return
+		// 	}
+		// 	let end = slen - this.currentSlideList.length
+		// 	if (end >= 9) {
+		// 		end = 9
+		// 	}
+		// 	this.currentSlideList.push(...this.slideList[this.slideIndex].slice(this.currentSlideList.length, this.currentSlideList.length+9))
+		// },
 		methods: {
+			async generatePDF() {
+			    try {
+			        const pdfDoc = new PDFDocument();
+			        const stream = pdfDoc.pipe(blobStream());
+			
+			        for (const url of this.slideList[this.slideIndex]) {
+			          const image = await this.downloadImage(url);
+			          pdfDoc.image(image, {
+			            fit: [500, 500], // 适当调整图像大小
+			          });
+			          pdfDoc.addPage();
+			        }
+			
+			        pdfDoc.end();
+			
+			        stream.on('finish', async () => {
+			          const blob = stream.toBlob('application/pdf');
+			          const pdfPath = `${plus.io.convertLocalFileSystemURL('_doc/')}/images.pdf`;
+			          const file = new File([blob], 'images.pdf', { type: 'application/pdf' });
+			          await this.saveFile(pdfPath, file);
+			          uni.showToast({
+			            title: 'PDF已生成',
+			            icon: 'success',
+			          });
+			        });
+			      } catch (e) {
+			        console.error(e);
+			        uni.showToast({
+			          title: '生成PDF失败',
+			          icon: 'none',
+			        });
+				}
+			},
+			downloadImage(url) {
+			  return new Promise((resolve, reject) => {
+				downloadFile({
+				  url,
+				  success: (res) => {
+					if (res.statusCode === 200) {
+					  resolve(res.tempFilePath);
+					} else {
+					  reject(new Error('图片下载失败'));
+					}
+				  },
+				  fail: (err) => reject(err),
+				});
+			  });
+			},
+			saveFile(path, file) {
+			  return new Promise((resolve, reject) => {
+				saveFile({
+				  tempFilePath: file,
+				  filePath: path,
+				  success: () => resolve(),
+				  fail: (err) => reject(err),
+				});
+			  });
+			},
 			load() {
 				const option = uni.getStorageSync('current_class')
 				if (!option) {
@@ -129,12 +199,9 @@ import {
 						title: this.baseInfo['title']
 					})
 				}
-				this.getAuthHeader()
-				const lp = uni.getStorageSync('pptList')
-				if (lp) {
-					if (Object.keys(lp).includes(this.lessonId)) {
-						this.isSave = true
-					}
+				this.getHistory()
+				if (this.type !== 'local') {
+					this.getAuthHeader()
 				}
 			},
 			getBasicInfo() {
@@ -147,7 +214,6 @@ import {
 					},
 					dataType:'json',
 					success:res=>{
-						// console.log("getBasicInfo", res.data);
 						this.baseInfo = res.data['data']
 						if (this.baseInfo['title'] && this.baseInfo['title']!='') {
 							uni.setNavigationBarTitle({
@@ -166,8 +232,37 @@ import {
 					}
 				})
 			},
+			getHistory() {
+				const res = uni.getStorageSync('pptList')
+				if (res) {
+					this.pptList = res.data
+					if (this.type == 'local') {
+						this.isSave = true
+						this.slideTitleList = this.pptList[this.lessonId]['slideList']['title']
+						this.slideList = this.pptList[this.lessonId]['slideList']['list']
+						this.chooseSlideIndex(this.slideIndex)
+						if (this.slideList.length > 0) {
+							this.isShowPPT = true
+							var imgList = []
+							this.slideList.forEach(list=>{
+								var all_cover = []
+								list.forEach(e=>{
+									all_cover.push(e['cover'])
+								})
+								imgList.push(all_cover)
+							})
+							this.imgList = imgList
+						}
+					} else {
+						if (this.pptList[this.lessonId]) {
+							this.isSave = true
+						}
+					}
+					return
+				}
+			},
 			save() {
-				var pptList = uni.getStorageSync('pptList')
+				var pptList = this.pptList
 				if (this.isSave == false) {
 					var date = new Date()
 					var year = date.getFullYear()
@@ -268,7 +363,6 @@ import {
 			        });
 			        // 注：只有连接正常打开中 ，才能正常收到消息
 			        this.websocket.onMessage((res) => {
-						// console.log("onMessage", res.data);
 						res.data = JSON.parse(res.data)
 						if (res.data['timeline'] && res.data['timeline']['length'] > 0) {
 							const timeline = res.data['timeline']
@@ -306,7 +400,6 @@ import {
 					},
 					dataType: 'json',
 					success:res=>{
-						// console.log("getAnswer", res.data);
 						if (res.data != '') {
 							if (res.data['data'] && res.data['data']['slides']) {
 								if (res.data['data']['slides']['length'] > 0) {
@@ -317,7 +410,10 @@ import {
 										cover_arr.push(e['cover'])
 									})
 									this.imgList.push(cover_arr)
-									this.isShowPPT = true
+									if (this.currentSlideList.length == 0 && this.slideTitleList.length>0) {
+										// this.chooseSlideIndex(this.slideIndex)
+										this.isShowPPT = true
+									}
 								}
 							}
 						}
@@ -341,7 +437,6 @@ import {
 					},
 					dataType: 'json',
 					success:res=>{
-						console.log("getAuthHeader", res.data);
 						if (res.data['msg'] == 'UNAUTHENTICATED') {
 							uni.showModal({
 								title: '提示',
@@ -413,16 +508,20 @@ import {
 	.center {
 		.pptList {
 			padding: 15rpx 20rpx;
-		}
-	}
-	.pptBox {
-		margin: 10px;
-		border-radius: 20rpx;
-		box-shadow: 1px 1px 1px 1px #DEEAF7;
-		background-color: #fff;
-		padding: 8px;
-		.answer {
-			color: $yuKeTang;
+			.pptBox {
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+ 				margin: 15rpx auto;
+				border-radius: 20rpx;
+				box-shadow: 1px 1px 1px 1px #DEEAF7;
+				background-color: #fff;
+				padding: 15rpx;
+				.answer {
+					color: $yuKeTang;
+				}
+			}
 		}
 	}
 	.tips {

@@ -2,8 +2,8 @@
     "name" : "雨课堂PPT",
     "appid" : "__UNI__EB06611",
     "description" : "方便获取雨课堂课堂使用的PPT",
-    "versionName" : "1.0.9",
-    "versionCode" : 109,
+    "versionName" : "1.1.1",
+    "versionCode" : 111,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
